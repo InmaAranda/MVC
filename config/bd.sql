@@ -1,5 +1,6 @@
 -- Active: 1750671266963@@127.0.0.1@3306@tienda_web
-drop database  if exists tienda_web; --peligro SE USAN EN DESARROLLO PERO EN LA EXPLOTACIÓN SE COMENTA 
+drop database  if exists tienda_web; 
+--peligro SE USAN EN DESARROLLO PERO EN LA EXPLOTACIÓN SE COMENTA 
 
 create database if not exists tienda_web
 character set latin1 
@@ -16,7 +17,7 @@ create table users(
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
     user_name varchar(25) not NULL,
     email varchar(80) not NULL unique, -- UNIQUE-> sirve para que el usuario no se registre con el mismo correo
-    password VARCHAR(25) NOT NULL
+    password VARCHAR(255) NOT NULL
 );
 
 

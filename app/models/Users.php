@@ -4,9 +4,11 @@ class Users{
     private $userName;
     private $email;
     private $password;
+    private $bd;  //copia de la conexión
 
 
-    public function __construct($userName, $email, $password, $id=0)
+
+    public function __construct($userName, $email, $password, $id=0, $bd) //$bd-> es la conexión que vamos a usar, al crear el objeto se pasa la conexión
         { //parámetro por omisión, para que la bbdd cargue el nº id que le corresponde
     
             $this->userName=$userName;
@@ -14,6 +16,7 @@ class Users{
             if(self:: isValidaContrasena($password)){
                 $this->password=$password;    
             }
+            $this->bd->$bd; //como vas a necesitar la conexión se hace directamente en el constructor
         }
 
 
@@ -95,8 +98,60 @@ class Users{
         return preg_match($patron, $password);
     }
 
+    //HACEMOS CRUD pero normalmente se hace en otro archivo php (otra clase)
+    //READ
+    public function getUsuarioPorNU($userName){ //getUsuarioPorNombreD
+    
+        $stmt = $this->bd->prepare(
+            "SELECT * FROM users where user_name=?"
+        );
+        
+        //creamos un array con los usuarios guardados
+        $stmt->execute([$userName]);
+        
+        //fetch(PDO::FETCH_ASSOC)- recoge en $user el array que es asociativo, porque al haber hecho la consulta hemos usado select *
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        //comprabamos que existe
+        if($user){
+            $this->id=$user['id'];
+            $this->userName=$user['user_name'];
+            $this->password=$user['password'];
+            $this->email=$user['email'];
+        }
+
+    }
+
+    public static function getListaUsuarios($bd){ //Estática, quieres del tirón devuelva la lista, no quieres un objeto, llamas a la conexión bd pasándolo por parámetro
+        
+        $stmt= $bd->query("SELECT * FROM users");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC); //fechAll ->DEVUELVE EL ARRAY PHP CON TODOS LOS OBJETOS DE LA CONSULTA
+    }
+
+    //Método de la clase que inserta o actualiza un usuario - se usa para create o replace --> cuando creas con el constructor el id está a 0 por lo que sabes que viene a crear,y el otro es cambiar
+    public function guardar(){
+
+        if($this->id==0){
+            //queremos insertar
+            $stmt = $this->bd->prepare("INSERT INTO users (user_name, email, password) VALUES (?,?,?");
+            $resultado=$stmt->execute([$this->userName, $this->email,  
+            //esto es super peligroso, no se guarda en plano una contraseña, hay que cifrarlas, haces un hash 
+            password_hash($this->password, PASSWORD)]);
+
+            //Recuperamos el id que le ha puesto la bbdd porque es auto increment
+            if($resultado){
+
+                $this->id=$this->bd->lastInsertId();
+            }
+    
+        }else{
+
+            //queremos actualizar
+            $stmt =$this->bd->prepare("UPDATE users SET user_name=?, email=?, password=? WHERE id=?");
+            $stmt=$stmt->execute([$this->userName, $this->email, $this->password, $this->id]);
+        }
+    }
 
 }
-
 
 ?>
