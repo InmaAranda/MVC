@@ -1,14 +1,15 @@
 <?php
+require_once "config/Database.php";
 class Users{
     private $id; //id autonomérico
     private $userName;
     private $email;
     private $password;
-    private $bd;  //copia de la conexión
+    private $db;  //copia de la conexión
 
 
 
-    public function __construct($userName, $email, $password, $id=0, $bd) //$bd-> es la conexión que vamos a usar, al crear el objeto se pasa la conexión
+    public function __construct($userName, $email, $password, $id=0, $db) //$bd-> es la conexión que vamos a usar, al crear el objeto se pasa la conexión
         { //parámetro por omisión, para que la bbdd cargue el nº id que le corresponde
     
             $this->userName=$userName;
@@ -16,7 +17,7 @@ class Users{
             if(self:: isValidaContrasena($password)){
                 $this->password=$password;    
             }
-            $this->bd->$bd; //como vas a necesitar la conexión se hace directamente en el constructor
+            $this->db->$db; //como vas a necesitar la conexión se hace directamente en el constructor
         }
 
 
@@ -100,9 +101,9 @@ class Users{
 
     //HACEMOS CRUD pero normalmente se hace en otro archivo php (otra clase)
     //READ
-    public function getUsuarioPorNU($userName){ //getUsuarioPorNombreD
+    public function getUsuarioPorNU($userName){ //getUsuarioPorNombreD ->podríamos hacerla estática
     
-        $stmt = $this->bd->prepare(
+        $stmt = $this->db->prepare(
             "SELECT * FROM users where user_name=?"
         );
         
@@ -122,36 +123,45 @@ class Users{
 
     }
 
-    public static function getListaUsuarios($bd){ //Estática, quieres del tirón devuelva la lista, no quieres un objeto, llamas a la conexión bd pasándolo por parámetro
+    public static function getListaUsuarios($db){ //Estática, quieres del tirón devuelva la lista, no quieres un objeto, llamas a la conexión bd pasándolo por parámetro
         
-        $stmt= $bd->query("SELECT * FROM users");
+        $stmt= $db->query("SELECT * FROM users");
         return $stmt->fetchAll(PDO::FETCH_ASSOC); //fechAll ->DEVUELVE EL ARRAY PHP CON TODOS LOS OBJETOS DE LA CONSULTA
     }
 
     //Método de la clase que inserta o actualiza un usuario - se usa para create o replace --> cuando creas con el constructor el id está a 0 por lo que sabes que viene a crear,y el otro es cambiar
     public function guardar(){
 
-        if($this->id==0){
-            //queremos insertar
-            $stmt = $this->bd->prepare("INSERT INTO users (user_name, email, password) VALUES (?,?,?");
+        if($this->id==0){ //Si el id es igual a cero es que se va a crear un nuevo usuario
+            
+            //queremos insertar -> SIEMPRE UNA OPERACIÓN PREPARE Y OTRA EXECUTE PARA QUE SE INCLUYA
+            $stmt = $this->db->prepare("INSERT INTO users (user_name, email, password) VALUES (?,?,?");
             $resultado=$stmt->execute([$this->userName, $this->email,  
             //esto es super peligroso, no se guarda en plano una contraseña, hay que cifrarlas, haces un hash 
             password_hash($this->password, PASSWORD)]);
 
-            //Recuperamos el id que le ha puesto la bbdd porque es auto increment
+            //Recuperamos el id que le ha puesto la bbdd porque es auto increment -> PARA QUE EL PROGRAMA GENERE EL SIGUIENTE Nº DE ID DE USUARIO, SE HACE UNA BUSQUEDA DEL ULTIMO ID
             if($resultado){
 
-                $this->id=$this->bd->lastInsertId();
+                $this->id=$this->db->lastInsertId();
             }
     
-        }else{
+        }else{ //si su id no es cero es una modificación
 
             //queremos actualizar
-            $stmt =$this->bd->prepare("UPDATE users SET user_name=?, email=?, password=? WHERE id=?");
-            $stmt=$stmt->execute([$this->userName, $this->email, $this->password, $this->id]);
+            $stmt =$this->db->prepare("UPDATE users SET user_name=?, email=?, password=? WHERE id=?");
+            $resultado=$stmt->execute([$this->userName, $this->email, $this->password, $this->id]);
         }
+        return $resultado;
     }
 
+    //Creamos delete
+    public  function borrar(){
+
+        $stmt=$this->db->prepare("Delete from users where id = ?");
+        return $stmt->execute([$this->id]);
+
+    }
 }
 
 ?>

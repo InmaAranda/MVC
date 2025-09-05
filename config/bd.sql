@@ -9,7 +9,7 @@ collate latin1_spanish_ci;
 use tienda_web;
 
 create user 'root' --esto es peligroso pero la bbdd está corrupta y habría que desinstalar el xampp
-identified by '';
+identified by ''; --el profesor lo tiene con un usuario que no es root, pero a mí el xampp me daba error de corrupción de bbdd por lo que no lo hice
 
 grant all PRIVILEGES on tienda_web.* to admin_tienda; --el usuario admin va a poder acceder a todo lo de su bbdd pero no podrá entrar en otras por tienda_web.* (a toda la bbdd tienda web)
 
