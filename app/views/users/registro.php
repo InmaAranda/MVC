@@ -4,7 +4,7 @@ form action es la url del sitio donde quiero redirigir
 
 El modelo vista sólo tiene el formulario, lo demás está abstraido
 -->
-<form action="/registro" method="post"> 
+<form action="/altaUsuario" method="post"> 
 
     <div>
         <label for="nombre usuario">Nombre de usuario: <small>*</small></label>
