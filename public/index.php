@@ -4,8 +4,8 @@ mantener estado entre unas páginas y otras*/
 session_start();
 
 //Cargamos los ficheros PHP necsarios
-require_once 'config/Database.php';
-require_once 'config/Router.php';
+require_once __DIR__ . '/../../config/Database.php';
+require_once __DIR__ . '/../../config/Router.php';
 
 
 //recuperamos la bbdd-> como es estática es con el método get 
